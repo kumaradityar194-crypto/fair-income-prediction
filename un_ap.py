@@ -7,7 +7,7 @@ import os
 # ================= LOAD MODEL =================
 BASE_DIR = os.path.dirname(__file__)
 
-model = joblib.load(os.path.join(BASE_DIR, "fair_model12.pkl"))
+model = joblib.load(os.path.join(BASE_DIR, "fair_model.pkl"))
 scaler = joblib.load(os.path.join(BASE_DIR, "fair_scaler.pkl"))
 features = joblib.load(os.path.join(BASE_DIR, "fair_features.pkl"))
 
