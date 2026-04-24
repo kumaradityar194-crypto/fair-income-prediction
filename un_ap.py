@@ -3,11 +3,20 @@ import numpy as np
 import pandas as pd
 import joblib
 import os
+import requests
 
-# ================= LOAD MODEL =================
+# ================= DOWNLOAD MODEL (GOOGLE DRIVE) =================
+MODEL_URL = "https://drive.google.com/uc?id=1FZsyrKfuo500dYa5psB4xHZKSHvXxHJx"
+
+if not os.path.exists("fair_model.pkl"):
+    with open("fair_model.pkl", "wb") as f:
+        response = requests.get(MODEL_URL)
+        f.write(response.content)
+
+# ================= LOAD FILES =================
 BASE_DIR = os.path.dirname(__file__)
 
-model = joblib.load(os.path.join(BASE_DIR, "fair_model.pkl"))
+model = joblib.load("fair_model.pkl")
 scaler = joblib.load(os.path.join(BASE_DIR, "fair_scaler.pkl"))
 features = joblib.load(os.path.join(BASE_DIR, "fair_features.pkl"))
 
@@ -29,7 +38,7 @@ st.write("⚖️ Fairness-aware model (bias reduced)")
 st.header("Enter User Details")
 
 age = st.slider("Age", 18, 65, 30)
-education_num = st.slider("Education Number", 1, 16, 10)
+education_num = st.slider("Education Level (1=Low, 16=PhD)", 1, 16, 10)
 hours_per_week = st.slider("Hours per Week", 1, 100, 40)
 
 # ================= INPUT =================
@@ -56,30 +65,34 @@ if st.button("Predict & Explain 🔥"):
     st.subheader("Prediction")
 
     if pred == 1:
-        st.success(f">50K 💰")
+        st.success("Predicted Income: >50K 💰")
     else:
-        st.warning(f"<=50K")
+        st.warning("Predicted Income: <=50K")
 
     st.write(f"📊 Confidence: {prob*100:.2f}%")
 
     # ================= EXPLANATION =================
     st.subheader("🧠 Explanation")
 
-    explanation = ""
+    explanation = None
 
     if USE_GEMINI:
         try:
             prompt = f"""
-            Age: {age}, Education: {education_num}, Hours: {hours_per_week}.
+            A fairness-aware ML model predicted income.
+
+            Age: {age}
+            Education Level: {education_num}
+            Working Hours: {hours_per_week}
             Probability: {prob}
 
-            Explain simply why this prediction was made.
+            Explain in simple 2 lines why this prediction was made.
             """
 
             response = gemini_model.generate_content(prompt)
             explanation = response.text
 
-        except Exception as e:
+        except Exception:
             explanation = None
 
     # ================= FALLBACK =================
