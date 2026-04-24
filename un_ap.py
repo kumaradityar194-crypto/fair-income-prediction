@@ -12,23 +12,15 @@ scaler = joblib.load(os.path.join(BASE_DIR, "scaler.pkl"))
 features = joblib.load(os.path.join(BASE_DIR, "features.pkl"))
 
 # ================= GEMINI SETUP =================
-if USE_GEMINI:
-    try:
-        response = gemini_model.generate_content(prompt)
-        explanation = response.text
-    except:
-        explanation = ""
+USE_GEMINI = False
 
-# fallback
-if not explanation:
-    if education_num > 12 and hours_per_week > 40:
-        explanation = "Higher education and longer working hours increase chances of high income."
-    elif education_num < 8:
-        explanation = "Lower education level reduces chances of high income."
-    elif hours_per_week < 30:
-        explanation = "Working fewer hours leads to lower income prediction."
-    else:
-        explanation = "Income depends on a mix of education and work hours."
+try:
+    import google.generativeai as genai
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+    USE_GEMINI = True
+except:
+    USE_GEMINI = False
 
 # ================= UI =================
 st.set_page_config(page_title="Fair AI Income Predictor", layout="centered")
@@ -66,9 +58,9 @@ if st.button("Predict & Explain 🔥"):
     st.subheader("Prediction")
 
     if pred == 1:
-        st.success(f">50K 💰")
+        st.success(">50K 💰")
     else:
-        st.warning(f"<=50K")
+        st.warning("<=50K")
 
     st.write(f"📊 Confidence: {prob*100:.2f}%")
 
@@ -77,6 +69,7 @@ if st.button("Predict & Explain 🔥"):
 
     explanation = ""
 
+    # 🔹 Gemini
     if USE_GEMINI:
         try:
             prompt = f"""
@@ -89,10 +82,10 @@ if st.button("Predict & Explain 🔥"):
             response = gemini_model.generate_content(prompt)
             explanation = response.text
 
-        except Exception as e:
-            explanation = None
+        except:
+            explanation = ""
 
-    # ================= FALLBACK =================
+    # 🔹 Fallback (always works)
     if not explanation:
         if education_num > 12 and hours_per_week > 40:
             explanation = "Higher education and longer working hours increase chances of high income."
@@ -107,4 +100,4 @@ if st.button("Predict & Explain 🔥"):
 
 # ================= FOOTER =================
 st.markdown("---")
-st.write("Built with ❤️ using Fairlearn + Streamlit + Gemini")
+st.write("Built with ❤️ using Scikit-learn + Streamlit + Gemini")
