@@ -12,13 +12,23 @@ scaler = joblib.load(os.path.join(BASE_DIR, "scaler.pkl"))
 features = joblib.load(os.path.join(BASE_DIR, "features.pkl"))
 
 # ================= GEMINI SETUP =================
-USE_GEMINI = True
-try:
-    import google.generativeai as genai
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-except:
-    USE_GEMINI = False
+if USE_GEMINI:
+    try:
+        response = gemini_model.generate_content(prompt)
+        explanation = response.text
+    except:
+        explanation = ""
+
+# fallback
+if not explanation:
+    if education_num > 12 and hours_per_week > 40:
+        explanation = "Higher education and longer working hours increase chances of high income."
+    elif education_num < 8:
+        explanation = "Lower education level reduces chances of high income."
+    elif hours_per_week < 30:
+        explanation = "Working fewer hours leads to lower income prediction."
+    else:
+        explanation = "Income depends on a mix of education and work hours."
 
 # ================= UI =================
 st.set_page_config(page_title="Fair AI Income Predictor", layout="centered")
