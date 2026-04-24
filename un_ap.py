@@ -49,7 +49,7 @@ input_scaled = scaler.transform(input_data)
 # ================= MAIN BUTTON =================
 if st.button("Predict & Explain 🔥"):
 
-    prob = model._pmf_predict(input_scaled)[:,1][0]
+    prob = model.predict_proba(input_scaled)[:,1][0]
     pred = 1 if prob > 0.5 else 0
     prob = round(prob, 3)
 
